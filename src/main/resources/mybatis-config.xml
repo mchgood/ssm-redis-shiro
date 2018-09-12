@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--约束文件的定义  -->
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+  <!-- 根标签 -->
+<configuration>
+
+	<settings>
+		<!-- 缓存全局开关  -->
+		<setting name="cacheEnabled" value="true" />
+		<!-- 延迟加载的全局开关 -->
+		<setting name="lazyLoadingEnabled" value="false"/>
+		<setting name="aggressiveLazyLoading" value="false" />
+	</settings> 		
+</configuration>

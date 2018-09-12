@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!-- 将shirofilete配置到容器中 -->
+	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+		<!-- 登录时访问到url： /login -->
+		<property name="loginUrl" value="/login"></property>
+		<!-- 登录成功后，会跳转到到页面 -->
+		<property name="successUrl"  value="/index"></property>
+		<!-- 访问某个url时，如果没有权限，会跳转到 unauthorizedUrl -->
+		<property name="unauthorizedUrl"  value="/unauthorized"></property>
+		
+		<!-- 配置过滤器链  -->
+		<property name="filterChainDefinitions">
+			<ref bean="shiroFilterChainDefinitions" />
+		</property>
+		
+		<property name="securityManager" ref="securityManager"></property>
+	</bean>
+	
+	
+	<!-- （会被引入）Shiro权限过滤器定义
+		  Url的定义规则:
+		  url = 拦截器 [参数]，拦截器[参数]
+		即如果当前请求的url 匹配[urls] 部分的某个 url 模式，将会执行其配置的    拦截器。
+		anon 拦截器表示匿名访问（即不需要登录即可访问）
+		authc 拦截器表示需要身份认证通过后才能访问
+		roles[admin] 拦截器表示需要有 admin 角色授权才能访问
+		perms["user:create"] 拦截器表示需要有 “user:create” 权限才能访问
+		logout 退出拦截器 ，从session中清除数据
+		 -->
+	<bean name="shiroFilterChainDefinitions" class="java.lang.String">
+		<constructor-arg>
+			<value>
+				/static/** = anon
+				/login = anon
+				/logout = logout
+				/** = authc
+			</value>			
+		</constructor-arg>
+	</bean>
+	
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<property name="realms">
+			<ref bean="realm"/>
+		</property>
+		<property name="cacheManager" ref="cacheManager"></property>
+	</bean>
+	
+	<bean id="cacheManager" class="com.zhidisoft.cache.RedisCacheManager"></bean>
+	
+	<bean id="realm" class="com.zhidisoft.realm.AhtuRealm">
+		<property name="credentialsMatcher" >
+			<bean class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+				<property name="hashAlgorithmName" value="md5"></property>
+				<property name="hashIterations" value="2"></property>
+				<property name="storedCredentialsHexEncoded" value="true"></property>
+			</bean>
+		</property>
+	</bean>
+	
+	
+	<!-- （固定）保证实现了Shiro内部lifecycle函数的bean执行 -->
+	<bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor" />
+
+	<!--（固定） AOP式方法级权限检查 -->
+	<bean
+		class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
+		depends-on="lifecycleBeanPostProcessor">
+		<property name="proxyTargetClass" value="true" />
+	</bean>
+	<bean
+		class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+		<property name="securityManager" ref="securityManager" />
+	</bean>
+	
+	
+</beans>

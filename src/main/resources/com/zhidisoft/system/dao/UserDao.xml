@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zhidisoft.system.dao.UserDao">
+	<resultMap id="BaseResultMap" type="com.zhidisoft.system.entity.User">
+		<id column="user_id" jdbcType="INTEGER" property="userId" />
+		<result column="user_name" jdbcType="VARCHAR" property="userName" />
+		<result column="password" jdbcType="VARCHAR" property="password" />
+		<result column="salt" jdbcType="VARCHAR" property="salt" />
+		<result column="phone" jdbcType="VARCHAR" property="phone" />
+		<result column="email" jdbcType="VARCHAR" property="email" />
+		<result column="status" jdbcType="INTEGER" property="status" />
+		<result column="note" jdbcType="VARCHAR" property="note" />
+		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+		<result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+	</resultMap>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		delete from tb_users
+		where user_id = #{userId,jdbcType=INTEGER}
+	</delete>
+	<insert id="insert" parameterType="com.zhidisoft.system.entity.User">
+		insert into tb_users (user_id, user_name, password,
+		salt, phone, email,
+		status, note, create_time,
+		update_time)
+		values (#{userId,jdbcType=INTEGER}, #{userName,jdbcType=VARCHAR},
+		#{password,jdbcType=VARCHAR},
+		#{salt,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR},
+		#{status,jdbcType=INTEGER}, #{note,jdbcType=VARCHAR},
+		#{createTime,jdbcType=TIMESTAMP},
+		#{updateTime,jdbcType=TIMESTAMP})
+	</insert>
+	<update id="updateByPrimaryKey" parameterType="com.zhidisoft.system.entity.User">
+		update tb_users
+		set user_name = #{userName,jdbcType=VARCHAR},
+		password = #{password,jdbcType=VARCHAR},
+		salt = #{salt,jdbcType=VARCHAR},
+		phone = #{phone,jdbcType=VARCHAR},
+		email = #{email,jdbcType=VARCHAR},
+		status = #{status,jdbcType=INTEGER},
+		note = #{note,jdbcType=VARCHAR},
+		create_time = #{createTime,jdbcType=TIMESTAMP},
+		update_time = #{updateTime,jdbcType=TIMESTAMP}
+		where user_id = #{userId,jdbcType=INTEGER}
+	</update>
+	<select id="selectByPrimaryKey" parameterType="java.lang.Integer"
+		resultMap="BaseResultMap">
+		select user_id, user_name, password, salt, phone, email, status, note,
+		create_time,
+		update_time
+		from tb_users
+		where user_id = #{userId,jdbcType=INTEGER}
+	</select>
+	<select id="selectAll" resultMap="BaseResultMap">
+		select user_id, user_name, password, salt, phone, email, status, note,
+		create_time,
+		update_time
+		from tb_users
+	</select>
+
+	<select id="findByName" resultMap="BaseResultMap">
+		select user_id, user_name, password, salt, phone, email, status, note,
+		create_time,
+		update_time
+		from tb_users where user_name = #{name}
+	</select>
+	
+	
+	<sql id="likeName">
+		<where>
+				<if test="userName != null and userName != ''">
+					user_name like concat("%",#{userName},"%")
+				</if>
+				<if test="status != null">
+					and status = #{status}
+				</if>
+			</where>
+	</sql>
+	<!-- 查询总记录数 -->
+	<select id="count" resultType="int">
+		select count(user_id) from tb_users
+		<include refid="likeName"/>
+	</select>
+	
+	<resultMap type="com.zhidisoft.system.entity.User" id="pageResultMap" extends="BaseResultMap">
+		<collection property="roleList" select="com.zhidisoft.system.dao.RoleDao.findByUserId" column="user_id"></collection>
+	</resultMap>
+	
+	<select id="findByPage" resultMap="pageResultMap">
+		select user_id, user_name, password, salt, phone, email, status, note,
+		create_time, update_time 
+		from   tb_users  
+		<include refid="likeName"/>
+		limit #{offset},#{pageSize}
+	</select>
+	
+	<delete id="deleteByIds">
+		delete from tb_users 
+		<where>
+			<foreach collection="ids" item="id" open="user_id in (" separator="," close=")">
+				#{id}
+			</foreach>
+		</where>
+	</delete>
+	
+	
+</mapper>
